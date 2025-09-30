@@ -131,7 +131,7 @@ app.get("/movies/:genreName", async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .send({ message: "Falha ao filtrar filmes por gênero" + " " + error });
+      .send({ message: "Falha ao filtrar filmes por gênero"});
   }
 });
 app.listen(port, () => {
