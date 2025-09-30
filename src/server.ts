@@ -108,7 +108,7 @@ app.delete("/movies/:id", async (req, res) => {
       .send({ message: "não foi possível remover o filme" });
   }
 
-  res.status(200).send({ message: "Filme não encontrado para exclusão" });
+  res.status(200).send({ message: "Filme removido com sucesso" });
 });
 
 app.get("/movies/:genreName", async (req, res) => {
