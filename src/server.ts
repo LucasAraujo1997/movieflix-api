@@ -1,11 +1,14 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "../swagger.json" with { type: "json" };
 
 const port = 3000;
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.get("/movies", async (_, res) => {
   const movies = await prisma.movie.findMany({
@@ -87,8 +90,52 @@ app.put("/movies/:id", async (req, res) => {
 
   res.status(200).send();
 });
+
+app.delete("/movies/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    const movie = await prisma.movie.findUnique({ where: { id: id } });
+
+    if (!movie) {
+      return res
+        .status(404)
+        .send({ mesage: "Não foi possivel encontrar filme" });
+    }
+    await prisma.movie.delete({ where: { id: id } });
+  } catch (error) {
+    return res
+      .status(500)
+      .send({ message: "não foi possível remover o filme" });
+  }
+
+  res.status(200).send({ message: "Filme não encontrado para exclusão" });
+});
+
+app.get("/movies/:genreName", async (req, res) => {
+  try {
+    const moviesFilteredByGenreName = await prisma.movie.findMany({
+      include: {
+        genres: true,
+        language: true,
+      },
+      where: {
+        genres: {
+          name: {
+            equals: req.params.genreName,
+            mode: "insensitive",
+          },
+        },
+      },
+    });
+    res.status(200).send(moviesFilteredByGenreName);
+  } catch (error) {
+    return res
+      .status(500)
+      .send({ message: "Falha ao filtrar filmes por gênero" + " " + error });
+  }
+});
 app.listen(port, () => {
   console.log(
-    `Servidor em execução na porta ${port} ou http://localhost:3000/movies `
+    `Servidor em execução na porta ${port} ou http://localhost:3000/docs `
   );
 });
